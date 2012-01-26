@@ -1,0 +1,10 @@
+Debug
+Release
+*.user
+*.suo
+*.pdb
+
+
+/measurements.txt
+/commands.txt
+/device.xml
