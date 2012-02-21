@@ -28,9 +28,9 @@ Connection::Connection( int _id,boolean _isRot)
 boolean Connection::calibrate(){
 	int pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
 	int lastPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);;
-	//om rotation, hittar lägsta kraft som behövs för att driva motorerna. spelare 0 och 4 saknar vinkelgivare
-	//möjligen skall detta göras för translation också 
-	if(isRot&&!(id==0||id==4)){
+	//om rotation, hittar lï¿½gsta kraft som behï¿½vs fï¿½r att driva motorerna. spelare 0 och 4 saknar vinkelgivare
+	//mï¿½jligen skall detta gï¿½ras fï¿½r translation ocksï¿½ 
+	if(isRot){
 		zeroAngle=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
 		/*Serial.println(id,DEC);
 		for(int i=0;i<255;i++){
@@ -51,7 +51,7 @@ boolean Connection::calibrate(){
 		
 	}
 	if(!isRot){
-		int newVal=analogRead(sensorPin);//sensorvärde mellan 0 och 1023
+		int newVal=analogRead(sensorPin);//sensorvï¿½rde mellan 0 och 1023
 		if(newVal>sensorMax){
 			sensorMax=newVal;
 			//EEPROM.write(2*id,sensorMax);
@@ -61,10 +61,10 @@ boolean Connection::calibrate(){
 		}
 		//sensorMax=1;
 		//int newVal=10;
-		//setSpeed(-200);//driver motorn åt ena hållet
+		//setSpeed(-200);//driver motorn ï¿½t ena hï¿½llet
 		//
 		//delay(400);
-		//while(newVal>sensorMax){//väntar till sensorvärdet inte längre ökar, därefter definerar det som maximum position
+		//while(newVal>sensorMax){//vï¿½ntar till sensorvï¿½rdet inte lï¿½ngre ï¿½kar, dï¿½refter definerar det som maximum position
 		//	sensorMax=newVal;
 		//	newVal=analogRead(sensorPin);
 		//	
@@ -86,7 +86,7 @@ boolean Connection::calibrate(){
 }
 void Connection::setSpeed(int vel){//driver motor angiven med dutycycle
 	
-	if(vel>0){//avgör körriktningen
+	if(vel>0){//avgï¿½r kï¿½rriktningen
 		digitalWrite(forwardPin,HIGH);
 		digitalWrite(backwardPin,LOW);
 	}else if(vel<0){
@@ -122,9 +122,7 @@ Player::Player(int _id){
 }
 void Player::update(){
 	updateTranslation();
-	if(id!=0&&id!=4){
 	updateRotation();
-	}
 	
 	//sendState();,,
 	//Serial.println(pos,DEC);//DEBUGGING
@@ -139,9 +137,9 @@ void Player::updateRotation(){
 	if((deltaRot-127)*(lastDeltaRot-127)<0){//change to correct halfturn if crossed the 180 degree mark
 		correctHalfTurn=true;
 	}
-	lastDeltaRot=deltaRot;//updaterar förra finkeln
+	lastDeltaRot=deltaRot;//updaterar fï¿½rra finkeln
 	
-	deltaRot-=255*((correctHalfTurn&&deltaRot>127)||((!correctHalfTurn)&&deltaRot<127));//placerar felet på rätt varv beroende på rotationsriktning 
+	deltaRot-=255*((correctHalfTurn&&deltaRot>127)||((!correctHalfTurn)&&deltaRot<127));//placerar felet pï¿½ rï¿½tt varv beroende pï¿½ rotationsriktning 
 	
 	
 	float spe=rotFeedback.update(rotSpeed,deltaRot);
@@ -153,7 +151,7 @@ void Player::updateTranslation(){
 	pos=map(analogRead(trans.sensorPin),trans.sensorMin,trans.sensorMax,0,255);
 	
 	float deltaPos=pos-transDestination;
-	float spe=transFeedback.update(transSpeed,deltaPos);//-abs(transSpeed)* constrain(deltaPos/proximity,-1,1);//skall återkopplas
+	float spe=transFeedback.update(transSpeed,deltaPos);//-abs(transSpeed)* constrain(deltaPos/proximity,-1,1);//skall ï¿½terkopplas
 	trans.setSpeed(spe);
 	
 }
@@ -162,7 +160,7 @@ void Player::setState(byte _transSpeed,byte _transDestination,char _rotSpeed,byt
 	rotDestination=_rotDestination;
 	transSpeed=_transSpeed;
 	rotSpeed=_rotSpeed;
-	//avgör om felet är den stora eller lilla vinkeln
+	//avgï¿½r om felet ï¿½r den stora eller lilla vinkeln
 	rot=map(analogRead(rotation.sensorPin),rotation.sensorMin,rotation.sensorMax,0,255);
 	float deltaRot=rotDestination-rot;
 	deltaRot+=255*(deltaRot<0);
@@ -192,7 +190,7 @@ void Player::reset(){
 	rotation.zeroAngle=0;
 }
 void Player::saveCalibration(){
-	EEPROM.write(3*id,trans.sensorMin/4);//gör om värderna till 8bit precision
+	EEPROM.write(3*id,trans.sensorMin/4);//gï¿½r om vï¿½rderna till 8bit precision
 	EEPROM.write(3*id+1,trans.sensorMax/4);
 	EEPROM.write(3*id+2,rotation.zeroAngle);
 }
