@@ -1,9 +1,7 @@
-
 #include "Player.h"
 #include "stdafx.h"
 
-
-Connection::Connection( int _id,boolean _isRot)
+Connection::Connection(int _id, boolean _isRot)
 {
 	id=_id;
 	isRot=_isRot;
@@ -20,38 +18,116 @@ Connection::Connection( int _id,boolean _isRot)
 	}
 	pinMode(forwardPin,OUTPUT);
 	pinMode(backwardPin,OUTPUT);
-	lowPower=0;
+	lowPowerPos=0;
+	lowPowerNeg=0;
 	highPower=255;
 	maxSpeed=127*(1+!isRot);
 	zeroAngle=EEPROM.read(3*id+2);;
 }
 boolean Connection::calibrate(){
+	
 	int pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-	int lastPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);;
-	//om rotation, hittar l�gsta kraft som beh�vs f�r att driva motorerna. spelare 0 och 4 saknar vinkelgivare
-	//m�jligen skall detta g�ras f�r translation ocks� 
+	int firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	int v=0;
+	int delayTime = 0;
+	
+	// Find lowPowerPos
+	
 	if(isRot){
-		zeroAngle=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-		/*Serial.println(id,DEC);
-		for(int i=0;i<255;i++){
+		v = 5;
+		delayTime = 100;
+	} else {
+		v = 3;
+		delayTime = 400;
+	}
+	
+	for(int i=0;i<255;i=i+2){
 			
 			pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
 			setSpeed(i);
-			delay(100);
-			if(abs(pos-lastPos)>10){
-				lowPower=i;
-				
-				
+			delay(delayTime);
+			
+			if(abs(pos-firstPos)>v){
+				lowPowerPos=i;						
 				break;
 			}
-			lastPos=pos;
+	}
+	
+	setSpeed(0);
+	delay(500);
+	
+	if(isRot){ // Rotation
+		//zeroAngle=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	
+	} else { // Translation
+		
+		// Maxläge		
+		sensorMax=1;
+		int newVal=10;
+		setSpeed(lowPowerPos);//driver motorn �t ena h�llet
+		
+		while(newVal>sensorMax){//v�ntar till sensorv�rdet inte l�ngre �kar, d�refter definerar det som maximum position
+			sensorMax=newVal;
 			
+			delay(300);
+			
+			newVal=analogRead(sensorPin);
 		}
-		setSpeed(0);*/
 		
 	}
-	if(!isRot){
-		int newVal=analogRead(sensorPin);//sensorv�rde mellan 0 och 1023
+		
+	setSpeed(0);
+	delay(500);
+		
+	// Find lowPowerNeg
+	
+	firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	
+	if(isRot){
+		v = 5;
+		delayTime = 100;
+	} else {
+		v = 3;
+		delayTime = 50;
+	}
+	
+	for(int j=0;j<255;j=j+2){
+			
+			pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+			setSpeed(-j);
+			delay(delayTime);
+			
+			if(abs(pos-firstPos)>v){
+				lowPowerNeg=j;						
+				break;
+			}
+	}
+	
+	setSpeed(0);
+	delay(500);
+	
+	if(isRot){ // Rotation
+		//zeroAngle=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	
+	} else { // Translation
+		
+		// Minläge		
+		int newVal=sensorMax;
+		sensorMin=newVal+1;
+			
+		setSpeed(-1);
+			
+		while(newVal<sensorMin){
+			sensorMin=newVal;
+							
+			delay(300);
+				
+			newVal=analogRead(sensorPin);
+		}
+		
+	}
+	
+	/*int newVal=analogRead(sensorPin);//sensorv�rde mellan 0 och 1023
 		if(newVal>sensorMax){
 			sensorMax=newVal;
 			//EEPROM.write(2*id,sensorMax);
@@ -59,29 +135,11 @@ boolean Connection::calibrate(){
 		if(newVal<sensorMin){
 			sensorMin=newVal;
 		}
-		//sensorMax=1;
-		//int newVal=10;
-		//setSpeed(-200);//driver motorn �t ena h�llet
-		//
-		//delay(400);
-		//while(newVal>sensorMax){//v�ntar till sensorv�rdet inte l�ngre �kar, d�refter definerar det som maximum position
-		//	sensorMax=newVal;
-		//	newVal=analogRead(sensorPin);
-		//	
-		//	delay(100);
-		//}
-
-		//newVal=sensorMax;
-		//sensorMin=newVal+1;
-		//setSpeed(200);
-		//delay(400);
-		//while(newVal<sensorMin){
-		//	sensorMin=newVal;
-		//	newVal=analogRead(sensorPin);
-		//	delay(100);
-		//}
-	}
-	//setSpeed(0);
+		*/
+		
+	setSpeed(0);
+	delay(500);
+	
 	return true;
 }
 void Connection::setSpeed(int vel){//driver motor angiven med dutycycle
@@ -98,7 +156,7 @@ void Connection::setSpeed(int vel){//driver motor angiven med dutycycle
 		digitalWrite(backwardPin,LOW);
 		analogWrite(speedPin,0);
 	}else{
-		int power=map(abs(vel),0,maxSpeed,lowPower,highPower);
+		int power=map(abs(vel),0,maxSpeed,lowPowerPos,highPower);
 		
 		analogWrite(speedPin,power);
 	}

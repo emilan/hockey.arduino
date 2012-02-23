@@ -15,7 +15,8 @@ struct Connection{//struct som läser och skriver i hårdvaran
 	Connection( int id=0,boolean isRot=false);
 	boolean calibrate();
 	void setSpeed(int vel);
-	int lowPower;
+	int lowPowerPos;
+	int lowPowerNeg;
 	int highPower;
 	int maxSpeed;
 	boolean isRot;

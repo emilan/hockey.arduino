@@ -3,48 +3,47 @@
 #include "Player.h"
 
 #define TEAMID "t1"
+
 Player players[6];
 boolean calibrating=false;
+
 void setup(){
-	TimerThree t=TimerThree();         // initialize timer1, and set a 1/2 second period
+	
+	TimerThree t=TimerThree();			// initialize timer1, and set a 1/2 second period
 	t.start();
-	t.setPeriod(100);// sätter pmw-period till 100 mikrosekunder
+	t.setPeriod(100);					// sï¿½tter pmw-period till 100 mikrosekunder
 
-
-	Serial.begin(115200);//startar seriell anslutning med 115kBaud
-	for(int i=0;i<6;i++){//sätter startvärden för spelarna
+	Serial.begin(115200);				//startar seriell anslutning med 115kBaud
+	
+	for(int i=0;i<6;i++){				//sï¿½tter startvï¿½rden fï¿½r spelarna
 		players[i]=Player(i);
 		players[i].transDestination=0;
 		players[i].transSpeed=0;
-		players[i].rotDestination=120;
+		players[i].rotDestination=120; 	//???
 		players[i].rotSpeed=0;
 	}
-	//uncomment when sensors are installed for autocalibrating game at startup
-	
-		//for(int i=0;i<6;i++){
-		//	players[i].calibrate();
-		//}
 	
 }
+
 void loop(){
-	
-	
-	if(Serial.available()>0){//kollar om meddelande har börjat komma
 		
-		delay(1);//väntar en millisekund för att mota hela medelandet
+	if(Serial.available() > 0){			//kollar om meddelande har bï¿½rjat komma
 		
+		delay(1);						//vï¿½ntar en millisekund fï¿½r att mota hela medelandet
 		char mode=Serial.read();
-		if(mode=='i'){//identification
+		
+		if(mode=='i'){					//identification, anvï¿½nds ej???
 			Serial.println(TEAMID);
+		}else if(mode=='c'){			//command
 			
-		}else if(mode=='c'){//command
 			if(calibrating){
 				calibrating=false;
-				for(int i=0;i<6;i++){//updaterar styrsignal
+				for(int i=0;i<6;i++){	//updaterar styrsignal
 					players[i].saveCalibration();
 				}
 			}
-			while(Serial.available()>=5){//om meddelandet är <5 är det inget kommando
+			
+			while(Serial.available()>=5){	//om meddelandet ï¿½r <5 ï¿½r det inget kommando
 				
 				byte pNumber=Serial.read();
 				byte transSpeed=Serial.read();
@@ -65,40 +64,56 @@ void loop(){
 			}
 			
 			sendState();
-			for(int i=0;i<6;i++){//updaterar styrsignal
-				players[i].update();
+			
+			for(int i=0;i<6;i++){	
+				players[i].update();					// Uppdaterar styrsignal
 			}
-			//players[0].update();
+			
+			//players[0].update(); // Why???
+			
 		}else if(mode=='d'){
+		
 			players[0].diagnostics();
 			
-		}else if(mode=='a'){//calibrerar spelet
+		}else if(mode=='a'){							// Kalibrerar spelet
 			if(!calibrating){
 				for(int i=0;i<6;i++){
 					players[i].reset();
 					//players[i].setState(200,127,0,0);
 				}
+			players[3].calibrate();
+			players[5].calibrate();
 			}
 			calibrating=true;
-			for(int i=0;i<6;i++){
+			/*for(int i=0;i<6;i++){
+				
+				
 				players[i].calibrate();
 				//players[i].setState(200,127,0,0);
 			}
+			*/
+			
+			
+			
 		}
-		Serial.flush();//slänger bufferten som inte lästs
+		
+		Serial.flush();//slï¿½nger bufferten som inte lï¿½sts
 		
 	}
 	
 }
-void sendState(){//konstuerar ett meddelande och skickar det
+
+void sendState(){									// Konstuerar ett meddelande och skickar det
+	
 	byte toSend[12];
 	int index=0;
+	
 	for(int i=0;i<6;i++){
 		toSend[index++]=players[i].getPos();
 		toSend[index++]=players[i].getRot();
 	}
+	
 	Serial.write(toSend,12);
-
 }
 
 
