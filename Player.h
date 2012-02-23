@@ -1,35 +1,13 @@
-#ifdef DEBUG
-#include "VSPDE.h"
-#else
-#include "WProgram.h"
-#endif
+#include "Connection.h"
 #include "Feedback.h"
 
-struct Connection{//struct som läser och skriver i hårdvaran
-	int forwardPin;
-	int backwardPin;
-	int speedPin;
-	int sensorPin;
-	int sensorMin;
-	int sensorMax;
-	Connection( int id=0,boolean isRot=false);
-	boolean calibrate();
-	void setSpeed(int vel);
-	int lowPowerPos;
-	int lowPowerNeg;
-	int highPower;
-	int maxSpeed;
-	boolean isRot;
-	int id;
-	int zeroAngle;
-};
 class Player{
 	int id;
 	Connection trans,rotation;
 	int pos,rot;
 	int deltaRot;
 	int lastDeltaRot;
-	boolean correctHalfTurn;
+	bool correctHalfTurn;
 	int lastPos,lastRot;
 	float proximity;
 	Feedback rotFeedback;
@@ -46,7 +24,7 @@ public:
 	void setState(byte transSpeed,byte transDestination,char rotSpeed,byte rotDestination);
 	byte getPos();
 	byte getRot();
-	boolean calibrate();
+	bool calibrate();
 	void diagnostics();
 	void reset();
 	void saveCalibration();

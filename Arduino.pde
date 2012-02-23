@@ -1,25 +1,33 @@
-#include "stdafx.h"
-#include "TimerThree.h"
 #include "Player.h"
+#include "TimerThree.h"
 
-#define TEAMID "t1"
+#define TEAMID "t0"
 
 Player players[6];
-boolean calibrating=false;
+bool calibrating=false;
+
+// REGLERPARAMETRAR
+int feedbackParameters[6][6] = 
+	{ {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0} };
 
 void setup(){
 	
-	TimerThree t=TimerThree();			// initialize timer1, and set a 1/2 second period
+	TimerThree t=TimerThree();			// Initialize Timer
 	t.start();
-	t.setPeriod(100);					// s�tter pmw-period till 100 mikrosekunder
+	t.setPeriod(100);					// PWM dutycycle 100 ms
 
-	Serial.begin(115200);				//startar seriell anslutning med 115kBaud
+	Serial.begin(115200);				// Begin serial, 115kBaud
 	
-	for(int i=0;i<6;i++){				//s�tter startv�rden f�r spelarna
+	for(int i=0;i<6;i++){				// Player init
 		players[i]=Player(i);
 		players[i].transDestination=0;
 		players[i].transSpeed=0;
-		players[i].rotDestination=120; 	//???
+		players[i].rotDestination=120; 	//?!?!?!
 		players[i].rotSpeed=0;
 	}
 	
@@ -27,36 +35,34 @@ void setup(){
 
 void loop(){
 		
-	if(Serial.available() > 0){			//kollar om meddelande har b�rjat komma
+	if(Serial.available() > 0){			// Wait for message
 		
-		delay(1);						//v�ntar en millisekund f�r att mota hela medelandet
+		delay(1);						// Delay 1 ms
 		char mode=Serial.read();
 		
-		if(mode=='i'){					//identification, anv�nds ej???
+		if(mode=='i'){					// Indetification Mode, In use ?!?!?
+			
 			Serial.println(TEAMID);
-		}else if(mode=='c'){			//command
+		
+		}else if(mode=='c'){			// Command Mode
 			
 			if(calibrating){
+			
 				calibrating=false;
-				for(int i=0;i<6;i++){	//updaterar styrsignal
+				
+				for(int i=0;i<6;i++){
 					players[i].saveCalibration();
 				}
+				
 			}
 			
-			while(Serial.available()>=5){	//om meddelandet �r <5 �r det inget kommando
+			while(Serial.available()>=5){		// Complete command?
 				
 				byte pNumber=Serial.read();
 				byte transSpeed=Serial.read();
 				byte transDestination=Serial.read();
 				char rotSpeed=Serial.read();
 				byte rotDestination=Serial.read();
-				/*Serial.print(transSpeed,DEC);
-				Serial.print(" ");
-				Serial.print(transDestination,DEC);
-				Serial.print(" ");
-				Serial.print(rotSpeed,DEC);
-				Serial.print(" ");
-				Serial.println(rotDestination,DEC);*/
 
 				if(pNumber>=0&&pNumber<6){	
 					players[pNumber].setState(transSpeed,transDestination,rotSpeed,rotDestination);
@@ -69,13 +75,12 @@ void loop(){
 				players[i].update();					// Uppdaterar styrsignal
 			}
 			
-			//players[0].update(); // Why???
-			
 		}else if(mode=='d'){
 		
 			players[0].diagnostics();
 			
 		}else if(mode=='a'){							// Kalibrerar spelet
+			
 			if(!calibrating){
 				for(int i=0;i<6;i++){
 					players[i].reset();
@@ -92,12 +97,10 @@ void loop(){
 				//players[i].setState(200,127,0,0);
 			}
 			*/
-			
-			
-			
+
 		}
 		
-		Serial.flush();//sl�nger bufferten som inte l�sts
+		Serial.flush();
 		
 	}
 	

@@ -1,4 +1,5 @@
 #include "Feedback.h"
+
 Feedback::Feedback(int _Kp,int _Ki,int _Kd,int _interval){
 	interval=_interval;
 	Ki=_Ki;
@@ -22,6 +23,7 @@ int Feedback::update(float rotSpeed,float delta){
 	if(abs(P)<5){
 		spe=0;
 	}
+	
 	/*Serial.print(I);
 	Serial.print("\t");
 	Serial.print(P);

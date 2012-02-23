@@ -1,8 +1,5 @@
-#ifdef DEBUG
-#include "VSPDE.h"
-#else
 #include "WProgram.h"
-#endif
+
 class Feedback{
 	int Ki,Kp,Kd;
 	float proximity;
