@@ -133,6 +133,9 @@ bool Connection::calibrate(){
 		
 	}
 	
+	setSpeed(0);
+	delay(500);
+	
 	/*int newVal=analogRead(sensorPin);//sensorv?rde mellan 0 och 1023
 		if(newVal>sensorMax){
 			sensorMax=newVal;
@@ -143,9 +146,6 @@ bool Connection::calibrate(){
 		}
 		*/
 		
-	setSpeed(0);
-	delay(500);
-	
 	return true;
 }
 void Connection::setSpeed(int vel){//driver motor angiven med dutycycle

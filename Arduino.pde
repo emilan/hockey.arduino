@@ -6,15 +6,6 @@
 Player players[6];
 bool calibrating=false;
 
-// REGLERPARAMETRAR
-int feedbackParameters[6][6] = 
-	{ {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0} };
-
 void setup(){
 	
 	TimerThree t=TimerThree();			// Initialize Timer
@@ -84,10 +75,9 @@ void loop(){
 			if(!calibrating){
 				for(int i=0;i<6;i++){
 					players[i].reset();
+					players[i].calibrate();
 					//players[i].setState(200,127,0,0);
 				}
-			players[3].calibrate();
-			players[5].calibrate();
 			}
 			calibrating=true;
 			/*for(int i=0;i<6;i++){

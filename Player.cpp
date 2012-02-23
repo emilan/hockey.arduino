@@ -1,5 +1,14 @@
 #include "Player.h"
 
+// REGLERPARAMETRAR
+int feedbackParameters[6][6] = 
+	{ {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0},
+	  {2,2,0,2,2,0} };
+
 Player::Player(){
 	;
 }
@@ -12,8 +21,8 @@ Player::Player(int _id){
 	//proximity=100;
 	//lastDeltaRot=0;
 	correctHalfTurn=true;
-	rotFeedback=Feedback(2,2,0,127);
-	transFeedback=Feedback(2,2,0,254);
+	rotFeedback=Feedback(feedbackParameters[id][0],feedbackParameters[id][1],feedbackParameters[id][2],127);
+	transFeedback=Feedback(feedbackParameters[id][3],feedbackParameters[id][4],feedbackParameters[id][5],254);
 }
 
 void Player::update(){
