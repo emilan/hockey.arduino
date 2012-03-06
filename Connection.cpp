@@ -67,7 +67,7 @@ bool Connection::calibrate(){
 	
 	} else { // Translation
 		
-		// Maxläge		
+		// Maxlï¿½ge		
 		sensorMax=1;
 		int newVal=10;
 		setSpeed(lowPowerPos);//driver motorn ?t ena h?llet
@@ -117,7 +117,7 @@ bool Connection::calibrate(){
 	
 	} else { // Translation
 		
-		// Minläge		
+		// Minlï¿½ge		
 		int newVal=sensorMax;
 		sensorMin=newVal+1;
 			
@@ -167,4 +167,8 @@ void Connection::setSpeed(int vel){//driver motor angiven med dutycycle
 		analogWrite(speedPin,power);
 	}
 
+}
+
+int Connection::readConstrained() {
+  return map(constrain(analogRead(sensorPin), sensorMin, sensorMax), sensorMin, sensorMax, 0, 255);
 }

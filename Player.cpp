@@ -31,8 +31,7 @@ void Player::update(){
 }
 
 void Player::updateRotation(){
-	
-	rot=map(analogRead(rotation.sensorPin),rotation.sensorMin,rotation.sensorMax,0,255)-rotation.zeroAngle;//mellan -255 och 255
+	rot = rotation.readConstrained() - rotation.zeroAngle;
 	float deltaRot=rotDestination-rot;//mellan -255 och 510
 	deltaRot+=255*((deltaRot<0)-(deltaRot>255));//mellan 0 och 255
 	
@@ -49,7 +48,7 @@ void Player::updateRotation(){
 
 void Player::updateTranslation(){
 	lastPos=pos;
-	pos=map(analogRead(trans.sensorPin),trans.sensorMin,trans.sensorMax,0,255);
+	pos = trans.readConstrained();
 	
 	float deltaPos=pos-transDestination;
 	float spe=transFeedback.update(transSpeed,deltaPos);//-abs(transSpeed)* constrain(deltaPos/proximity,-1,1);//skall �terkopplas

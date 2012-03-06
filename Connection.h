@@ -22,4 +22,6 @@ public:
 	Connection(int _id, bool _isRot);
 	bool calibrate();
 	void setSpeed(int vel);
+
+	int readConstrained();  
 };
