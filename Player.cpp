@@ -1,6 +1,6 @@
 #include "Player.h"
 
-// REGLERPARAMETRAR
+// Control parameters
 int feedbackParameters[6][6] = 
 	{ {2,2,0,2,2,0},
 	  {2,2,0,2,2,0},
@@ -16,10 +16,9 @@ Player::Player(){
 Player::Player(int _id){
 
 	id=_id;
-	trans=Connection(id,false);
-	rotation=Connection(id,true);
-	//proximity=100;
-	//lastDeltaRot=0;
+	trans=TransDriver(id);
+	rotation=RotDriver(id);
+
 	correctHalfTurn=true;
 	rotFeedback=Feedback(feedbackParameters[id][0],feedbackParameters[id][1],feedbackParameters[id][2],127);
 	transFeedback=Feedback(feedbackParameters[id][3],feedbackParameters[id][4],feedbackParameters[id][5],254);
@@ -81,8 +80,11 @@ byte Player::getRot(){
 }
 
 bool Player::calibrate(){
+	
 	rotation.calibrate();
-	return trans.calibrate();//
+	trans.calibrate();
+	
+	return true;
 	
 }
 

@@ -1,9 +1,11 @@
-#include "Connection.h"
+#include "TransDriver.h"
+#include "RotDriver.h"
 #include "Feedback.h"
 
 class Player{
 	int id;
-	Connection trans,rotation;
+	TransDriver trans;
+	RotDriver rotation;
 	int pos,rot;
 	int deltaRot;
 	int lastDeltaRot;

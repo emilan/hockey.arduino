@@ -30,6 +30,7 @@ Connection::Connection(int _id, bool _isRot){
 	maxSpeed=127*(1+!isRot);
 	zeroAngle=EEPROM.read(3*id+2);
 }
+
 bool Connection::calibrate(){
 	
 	int pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
@@ -157,6 +158,7 @@ void Connection::setSpeed(int vel){//driver motor angiven med dutycycle
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,HIGH);
 	}
+	
 	if(vel==0){
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,LOW);

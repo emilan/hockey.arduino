@@ -1,13 +1,13 @@
-#include "Feedback.h"
+#include "RotController.h"
 
-Feedback::Feedback(int _Kp,int _Ki,int _Kd,int _interval){
+RotController::RotController(int _Kp,int _Ki,int _Kd,int _interval){
 	interval=_interval;
 	Ki=_Ki;
 	Kp=_Kp;
 	Kd=_Kd;
 }
 
-int Feedback::update(float speed,float delta){
+int RotController::update(float speed,float delta){
 	
 	float absSpeedfrac=abs(speed)/interval;
 	
@@ -34,7 +34,7 @@ int Feedback::update(float speed,float delta){
 	return constrain(spe,-interval,interval);
 }
 
-void Feedback::reset(){
+void RotController::reset(){
 	I=0;
 	lastDelta=0;
 }

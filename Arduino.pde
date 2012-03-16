@@ -78,6 +78,12 @@ void loop(){
 					players[i].calibrate();
 					//players[i].setState(200,127,0,0);
 				}
+				//players[0].calibrate();
+				//players[1].calibrate();
+				//players[2].calibrate();
+				//players[3].calibrate();
+				//players[4].calibrate();
+				//players[5].calibrate();
 			}
 			calibrating=true;
 			/*for(int i=0;i<6;i++){
