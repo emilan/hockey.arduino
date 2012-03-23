@@ -13,8 +13,8 @@ RotDriver::RotDriver(int _id){
 	pinMode(forwardPin,OUTPUT);
 	pinMode(backwardPin,OUTPUT);
 	
-	speedPin=3+2*id;	// Analog out
-	sensorPin=4*id;		// Analog in
+	speedPin=3+2*id;		// Analog out
+	sensorPin=2*id+1;		// Analog in
 	
 	sensorMin=0;
 	sensorMax=1023;
@@ -82,28 +82,30 @@ bool RotDriver::calibrate(){
 
 // Activate motor with chosen duty cycle
 void RotDriver::setSpeed(int vel){
-	
-	int power = 0;
-	
-	// Choose direction
-	if(vel>0){
-		digitalWrite(forwardPin,HIGH);
-		digitalWrite(backwardPin,LOW);		
-		power = lowPowerPos;	
-	}else if(vel<0){
-		digitalWrite(forwardPin,LOW);
-		digitalWrite(backwardPin,HIGH);		
-		power = lowPowerNeg;		
-	}
-	
+		
 	// Set speed
-	if(vel==0){	
+	if(vel==0){		
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,LOW);
-		analogWrite(speedPin,0);
-	}else{
-		int powerFinal=map(abs(vel),0,maxSpeed,lowPowerPos,highPower);
-		analogWrite(speedPin,powerFinal);		
+		analogWrite(speedPin,0);		
+	}else{	
+	
+		int lowPower = 0;
+		
+		// Choose direction
+		if(vel>0){		
+			digitalWrite(forwardPin,HIGH);
+			digitalWrite(backwardPin,LOW);		
+			lowPower = lowPowerPos;			
+		}else if(vel<0){		
+			digitalWrite(forwardPin,LOW);
+			digitalWrite(backwardPin,HIGH);		
+			lowPower = lowPowerNeg;			
+		}
+		
+		int finalPower=map(abs(vel),0,maxSpeed,lowPower,highPower);
+		analogWrite(speedPin,finalPower);	
+		
 	}
 
 }

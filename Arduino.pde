@@ -13,7 +13,7 @@ void setup(){
 	t.setPeriod(100);					// PWM dutycycle 100 ms
 
 	Serial.begin(115200);				// Begin serial, 115kBaud
-	
+
 	for(int i=0;i<6;i++){				// Player init
 		players[i]=Player(i);
 		players[i].transDestination=0;
@@ -25,7 +25,7 @@ void setup(){
 }
 
 void loop(){
-		
+
 	if(Serial.available() > 0){			// Wait for message
 		
 		delay(1);						// Delay 1 ms
@@ -68,7 +68,20 @@ void loop(){
 			
 		}else if(mode=='d'){
 		
-			players[0].diagnostics();
+			while(1){
+				
+				int hej = players[5].getRot();
+				
+				Serial.println(hej);
+				Serial.println(players[5].deltaRot);
+				Serial.println("--");
+				delay(1000);
+				
+				for(int i=0;i<6;i++){	
+						players[i].update();					// Uppdaterar styrsignal
+				}
+
+			}
 			
 		}else if(mode=='a'){							// Kalibrerar spelet
 			

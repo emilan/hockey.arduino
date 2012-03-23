@@ -1,15 +1,20 @@
 #include "WProgram.h"
 
 class RotController{
-	int Ki,Kp,Kd;
-	float proximity;
-	float I;
-	int time;
-	int lastTime;
-	int lastDelta;
-	int interval;
+	
+	float Ki,Kp;
+	int powerMax = 127;
+	int powerMin = -127;
+	
+	int lastTime;	
+	int lastError;
+	int lastPower;
+	
 public:	
-	RotController(int _Kp=5,int _Ki=5,int _Kd=0,int interval=255);//
-	int update(float rotSpeed,float delta);
+	RotController(float _Kp, float _Ki);
+	int update(int rotSpeed, int cwError);
 	void reset();
 };
+
+
+	

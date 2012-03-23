@@ -112,27 +112,27 @@ bool TransDriver::calibrate(){
 // Activate motor with chosen duty cycle
 void TransDriver::setSpeed(int vel){
 	
-	int power = 0;
+	int lowPower = 0;
 	
 	// Choose direction
 	if(vel>0){
 		digitalWrite(forwardPin,HIGH);
 		digitalWrite(backwardPin,LOW);		
-		power = lowPowerPos;	
+		lowPower = lowPowerPos;	
 	}else if(vel<0){
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,HIGH);		
-		power = lowPowerNeg;		
+		lowPower = lowPowerNeg;		
 	}
-	
+	 
 	// Set speed
 	if(vel==0){	
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,LOW);
 		analogWrite(speedPin,0);
 	}else{
-		int powerFinal=map(abs(vel),0,maxSpeed,lowPowerPos,highPower);
-		analogWrite(speedPin,powerFinal);		
+		int finalPower=map(abs(vel),0,maxSpeed,lowPower,highPower);
+		analogWrite(speedPin,finalPower);		
 	}
 
 }
