@@ -55,6 +55,10 @@ byte getByte() {
 	return res;
 }
 
+void printDebugInfo() {
+	
+}
+
 void loop(){
 	if(Serial.available() > 0){			// Wait for message
 		
@@ -145,7 +149,8 @@ void loop(){
 	
 	for(int i=0;i<6;i++)	
 		players[i].update();					// Uppdaterar styrsignal
-		
+	
+	printDebugInfo();
 }
 
 void sendState(){									// Konstuerar ett meddelande och skickar det
