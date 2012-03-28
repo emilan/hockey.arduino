@@ -56,7 +56,11 @@ byte getByte() {
 }
 
 void printDebugInfo() {
-	
+	for (int i = 0; i < 6; i++) {
+		Serial.print(players[i].getPos(), DEC);
+		Serial.print("\t");
+	}
+	Serial.print("\n");
 }
 
 void loop(){
