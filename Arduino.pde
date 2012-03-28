@@ -24,8 +24,38 @@ void setup(){
 	
 }
 
-void loop(){
+char getChar() {
+	char res = 0;
+	char sign = 1;
 
+	while (Serial.available() > 0) {
+		char c = Serial.read();
+		if (c == '-')
+			sign = -1;
+		else {
+			if (c == ' ')
+				break;
+			res = res * 10 + c - '0';
+		}
+	}
+	res = sign * res;
+	//Serial.println(res, DEC);
+	return res;
+}
+
+byte getByte() {
+	byte res = 0;
+	while (Serial.available() > 0) {
+		char c = Serial.read();
+		if (c == ' ')
+			break;
+		res = res * 10 + c - '0';
+	}
+	//Serial.println(res, DEC);
+	return res;
+}
+
+void loop(){
 	if(Serial.available() > 0){			// Wait for message
 		
 		delay(1);						// Delay 1 ms
@@ -55,36 +85,36 @@ void loop(){
 				char rotSpeed=Serial.read();
 				byte rotDestination=Serial.read();
 
-				if(pNumber>=0&&pNumber<6){	
-					players[pNumber].setState(transSpeed,transDestination,rotSpeed,rotDestination);
+				if(pNumber>=0&&pNumber<6){
+					players[pNumber].setState(transSpeed, transDestination, rotSpeed, rotDestination);
 				}
 			}
 			
 			sendState();
 			
-			for(int i=0;i<6;i++){	
-				players[i].update();					// Uppdaterar styrsignal
-			}
-			
 		}else if(mode=='d'){
-		
-			while(1){
-				
-				int hej = players[5].getRot();
-				
-				Serial.println(hej);
-				Serial.println(players[5].deltaRot);
-				Serial.println("--");
-				delay(1000);
-				
-				for(int i=0;i<6;i++){	
-						players[i].update();					// Uppdaterar styrsignal
-				}
-
+			byte pNumber = getByte();
+			byte transSpeed = getByte();
+			byte transDestination = getByte();
+			char rotSpeed = getChar();
+			byte rotDestination = getByte();
+			
+			Serial.print("Received d: ");
+			Serial.print(pNumber, DEC);
+			Serial.print('.');
+			Serial.print(transSpeed, DEC);
+			Serial.print('.');
+			Serial.print(transDestination, DEC);
+			Serial.print('.');
+			Serial.print(rotSpeed, DEC);
+			Serial.print('.');
+			Serial.println(rotDestination, DEC);
+			
+			if (pNumber >=0 && pNumber<6) {	
+				Serial.println("Setting state...");
+				players[pNumber].setState(transSpeed, transDestination, rotSpeed, rotDestination);
 			}
-			
-		}else if(mode=='a'){							// Kalibrerar spelet
-			
+		} else if(mode=='a'){							// Kalibrerar spelet
 			if(!calibrating){
 				for(int i=0;i<6;i++){
 					players[i].reset();
@@ -113,6 +143,9 @@ void loop(){
 		
 	}
 	
+	for(int i=0;i<6;i++)	
+		players[i].update();					// Uppdaterar styrsignal
+		
 }
 
 void sendState(){									// Konstuerar ett meddelande och skickar det
