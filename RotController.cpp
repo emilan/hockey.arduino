@@ -1,9 +1,16 @@
 #include "RotController.h"
 
+RotController::RotController() {
+
+}
+
 RotController::RotController(float _Kp, float _Ki) {
 
 	Kp=_Kp;
 	Ki=_Ki;
+	
+	powerMax = 127;
+	powerMin = -127;
 	
 	reset();
 	
@@ -13,6 +20,7 @@ int RotController::update(int speed, int cwError){
 	
 	int time = millis();	
 	int deltaTime = 0;
+	int error = 0;
 	
 	if(lastTime) {
 		deltaTime = (time-lastTime)*0.001;

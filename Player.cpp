@@ -10,7 +10,7 @@ int feedbackParameters[6][6] =
 	  {2,2,0,2,2,0} };
 
 Player::Player(){
-	;
+
 }
 
 Player::Player(int _id){
@@ -20,8 +20,8 @@ Player::Player(int _id){
 	rotation=RotDriver(id);
 
 	correctHalfTurn=true;
-	rotController=RotController(feedbackParameters[id][0],feedbackParameters[id][1],feedbackParameters[id][2],127);
-	transController=TransController(feedbackParameters[id][3],feedbackParameters[id][4],feedbackParameters[id][5],254);
+	rotController=RotController(feedbackParameters[id][0],feedbackParameters[id][1]);
+	transController=TransController(feedbackParameters[id][3],feedbackParameters[id][4]);
 }
 
 void Player::update(){

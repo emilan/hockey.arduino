@@ -3,16 +3,18 @@
 class RotController{
 	
 	float Ki,Kp;
-	int powerMax = 127;
-	int powerMin = -127;
+	int powerMax;
+	int powerMin;
 	
 	int lastTime;	
 	int lastError;
 	int lastPower;
 	
-public:	
+public:
+	RotController();
 	RotController(float _Kp, float _Ki);
 	int update(int rotSpeed, int cwError);
+	
 	void reset();
 };
 
