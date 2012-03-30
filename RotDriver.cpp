@@ -84,7 +84,7 @@ bool RotDriver::calibrate(){
 void RotDriver::setSpeed(int vel){
 		
 	// Set speed
-	if(vel==0){		
+	if(abs(vel) <= 20) {		
 		digitalWrite(forwardPin,LOW);
 		digitalWrite(backwardPin,LOW);
 		analogWrite(speedPin,0);		
@@ -113,4 +113,8 @@ void RotDriver::setSpeed(int vel){
 // Finns annat sätt att koda, behövs detta?!?!?
 int RotDriver::readConstrained() {
   return map(constrain(analogRead(sensorPin), sensorMin, sensorMax), sensorMin, sensorMax, 0, 255);
+}
+
+bool RotDriver::reset() {
+	return true;
 }

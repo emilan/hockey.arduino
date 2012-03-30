@@ -20,7 +20,10 @@ public:
 
 	RotDriver();
 	RotDriver(int _id);
+	
 	bool calibrate();
 	void setSpeed(int vel);
-	int readConstrained();  
+	int readConstrained();
+	
+	bool reset();
 };

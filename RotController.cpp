@@ -38,7 +38,7 @@ int RotController::update(int speed, int cwError){
 	
 	int power = constrain(lastPower+powerDelta,powerMin,powerMax);
 	
-	if(abs(error)<2){
+	if(abs(error)<20 || abs(error)>(255-20)) {
 		power = 0;
 	}
 

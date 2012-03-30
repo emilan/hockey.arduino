@@ -1,34 +1,42 @@
 #include "TransDriver.h"
 #include "RotDriver.h"
-#include "RotController.h"
 #include "TransController.h"
+#include "RotController.h"
 
 class Player{
-	int id;
-	TransDriver trans;
-	RotDriver rotation;
-	int pos,rot;
 	
-	int lastDeltaRot;
-	bool correctHalfTurn;
-	int lastPos,lastRot;
-	float proximity;
-	RotController rotController;
+	int id;
+	
+	// Drivers
+	TransDriver transDriver;
+	RotDriver rotDriver;
+	
+	// Controllers
 	TransController transController;
+	//RotController rotController;
+
+	int transCurrent, rotCurrent;
 	
 public:
-	int deltaRot;
-	int transDestination,rotDestination;
-	float transSpeed,rotSpeed;
+	RotController rotController;
+
+	int transDestination, rotDestination;
+	float transSpeed, rotSpeed;
+	
 	Player();
 	Player(int _id);
-	void update();
-	void updateRotation();
-	void updateTranslation();
-	void setState(byte transSpeed,byte transDestination,char rotSpeed,byte rotDestination);
-	bool calibrate();
-	void saveCalibration();
-	byte getPos();
+	
+	byte getTrans();
 	byte getRot();
-	void reset();
+	
+	void update();
+	void updateRot();
+	void updateTrans();
+	
+	void setState(byte transSpeed, byte transDestination, char rotSpeed, byte rotDestination);
+	
+	bool calibrate();
+	bool saveCalibration();
+	
+	bool reset();
 };

@@ -140,3 +140,7 @@ void TransDriver::setSpeed(int vel){
 int TransDriver::readConstrained() {
   return map(constrain(analogRead(sensorPin), sensorMin, sensorMax), sensorMin, sensorMax, 0, 255);
 }
+
+bool TransDriver::reset() {
+	return true;
+}

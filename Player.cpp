@@ -2,12 +2,12 @@
 
 // Control parameters
 int feedbackParameters[6][6] = 
-	{ {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0},
-	  {2,2,0,2,2,0} };
+	{ {2,2,2,2},
+	  {2,2,2,2},
+	  {2,2,2,2},
+	  {2,2,2,2},
+	  {2,2,2,2},
+	  {2,2,2,2} };
 
 Player::Player(){
 
@@ -16,24 +16,27 @@ Player::Player(){
 Player::Player(int _id){
 
 	id=_id;
-	trans=TransDriver(id);
-	rotation=RotDriver(id);
-
-	correctHalfTurn=true;
-	rotController=RotController(feedbackParameters[id][0],feedbackParameters[id][1]);
-	transController=TransController(feedbackParameters[id][3],feedbackParameters[id][4]);
+	
+	// Drivers
+	transDriver=TransDriver(id);
+	rotDriver=RotDriver(id);
+	
+	//Controllers
+	transController=TransController(feedbackParameters[id][0],feedbackParameters[id][1]);
+	rotController=RotController(feedbackParameters[id][2],feedbackParameters[id][3]);
+	
 }
 
 void Player::update(){
-	updateTranslation();
-	updateRotation();
+	updateTrans();
+	updateRot();
 }
 
-void Player::updateRotation(){
+void Player::updateRot(){
 	
-	rot = rotation.readConstrained() - rotation.zeroAngle;
+	rotCurrent = rotDriver.readConstrained() - rotDriver.zeroAngle;
 	
-	int cwError = rotDestination - rot;				//mellan -255 och 510   '+???'
+	int cwError = rotDestination - rotCurrent;				//mellan -255 och 510   '+???'
 	if (cwError < 0)
 		cwError += 255;
 	
@@ -50,65 +53,80 @@ void Player::updateRotation(){
 	*/
 	
 	float spe = rotController.update(rotSpeed, cwError);
-	rotation.setSpeed(spe);
+	rotDriver.setSpeed(spe);
 }
 
-void Player::updateTranslation(){
-	lastPos=pos;
-	pos = trans.readConstrained();
+void Player::updateTrans(){
+
+	transCurrent = transDriver.readConstrained();
+	int error = transCurrent - transDestination;
 	
-	float deltaPos=pos-transDestination;
-	float spe=transController.update(transSpeed,deltaPos);//-abs(transSpeed)* constrain(deltaPos/proximity,-1,1);//skall �terkopplas
-	trans.setSpeed(spe);
+	float spe = transController.update(transSpeed, error);
+	transDriver.setSpeed(spe);
 }
 
 void Player::setState(byte _transSpeed, byte _transDestination, char _rotSpeed, byte _rotDestination){
 	
 	// Reset for new movement
-	transController.reset();			//?!?!?!
+	transController.reset();
 	rotController.reset();
 	
+	// Save new state to variables	
 	transSpeed = _transSpeed;
 	transDestination = _transDestination;
 	
 	rotSpeed =_rotSpeed;
 	rotDestination = _rotDestination;
-	
-	//avg�r om felet �r den stora eller lilla vinkeln
-	rot = rotation.readConstrained(); // - rotation.zeroAngle;
-	float deltaRot=rotDestination-rot;
-	deltaRot+=255*(deltaRot<0);
-	lastDeltaRot=deltaRot;
-	deltaRot-=255*(deltaRot>127);
-	
-	correctHalfTurn=deltaRot*rotSpeed>0;
+		
 }
 
 bool Player::calibrate(){
 	
-	rotation.calibrate();
-	trans.calibrate();
+	rotDriver.calibrate();
+	transDriver.calibrate();
 	
 	return true;
 	
 }
 
-void Player::saveCalibration(){					// Store calibration
-	EEPROM.write(3*id,trans.sensorMin/4);		//g�r om v�rderna till 8bit precision
-	EEPROM.write(3*id+1,trans.sensorMax/4);
-	EEPROM.write(3*id+2,rotation.zeroAngle);
+bool Player::saveCalibration(){					// Store calibration
+	EEPROM.write(3*id,transDriver.sensorMin/4);		//g�r om v�rderna till 8bit precision
+	EEPROM.write(3*id+1,transDriver.sensorMax/4);
+	EEPROM.write(3*id+2,rotDriver.zeroAngle);
+	
+	// FIXA DETTA!
+	
+	return true;
+	
 }
 
-void Player::reset(){
-	trans.sensorMax=0;
-	trans.sensorMin=1023;
-	rotation.zeroAngle=0;
+bool Player::reset(){
+
+	transDriver.reset();
+	rotDriver.reset();
+	
+	transController.reset();
+	rotController.reset();
+	
+	// Ska detta vara med i reset???
+	
+	transCurrent = 0;
+	rotCurrent = 0;
+	
+	/*
+	transDriver.sensorMax=0;
+	transDriver.sensorMin=1023;
+	rotDriver.zeroAngle=0;
+	*/
+	
+	return true;
+	
 }
 
-byte Player::getPos(){
-	return pos;
+byte Player::getTrans(){
+	return transCurrent;
 }
 
 byte Player::getRot(){
-	return rot;
+	return rotCurrent;
 }

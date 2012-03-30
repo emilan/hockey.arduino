@@ -93,6 +93,7 @@ void loop(){
 			sendState();
 			
 		}else if(mode=='d'){
+		
 			byte pNumber = getByte();
 			byte transSpeed = getByte();
 			byte transDestination = getByte();
@@ -114,28 +115,34 @@ void loop(){
 				Serial.println("Setting state...");
 				players[pNumber].setState(transSpeed, transDestination, rotSpeed, rotDestination);
 			}
+			
+			// Fulhack för errors
+			
+			mode = Serial.read();
+			
+			while(mode!='x') {
+		
+				Serial.println(players[pNumber].rotController.lastError);
+				
+				for(int i=0;i<6;i++)	
+				players[i].update();					// Uppdaterar styrsignal
+				
+				mode=Serial.read();
+			
+			}
+			
 		} else if(mode=='a'){							// Kalibrerar spelet
+			
 			if(!calibrating){
+			
 				for(int i=0;i<6;i++){
 					players[i].reset();
 					players[i].calibrate();
-					//players[i].setState(200,127,0,0);
 				}
-				//players[0].calibrate();
-				//players[1].calibrate();
-				//players[2].calibrate();
-				//players[3].calibrate();
-				//players[4].calibrate();
-				//players[5].calibrate();
+				
 			}
+			
 			calibrating=true;
-			/*for(int i=0;i<6;i++){
-				
-				
-				players[i].calibrate();
-				//players[i].setState(200,127,0,0);
-			}
-			*/
 
 		}
 		
@@ -148,13 +155,13 @@ void loop(){
 		
 }
 
-void sendState(){									// Konstuerar ett meddelande och skickar det
+void sendState(){								// Konstuerar ett meddelande och skickar det
 	
 	byte toSend[12];
 	int index=0;
 	
 	for(int i=0;i<6;i++){
-		toSend[index++]=players[i].getPos();
+		toSend[index++]=players[i].getTrans();
 		toSend[index++]=players[i].getRot();
 	}
 	

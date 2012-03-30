@@ -19,8 +19,11 @@ public:
 
 	TransDriver();
 	TransDriver(int _id);
+	
 	bool calibrate();
+	
 	void setSpeed(int vel);
 	int readConstrained(); 
 	
+	bool reset();
 };
