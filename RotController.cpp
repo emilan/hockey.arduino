@@ -4,8 +4,9 @@ RotController::RotController() {
 
 }
 
-RotController::RotController(float _Kp, float _Ki) {
+RotController::RotController(int _id, float _Kp, float _Ki) {
 
+	id = _id;
 	Kp=_Kp;
 	Ki=_Ki;
 	
@@ -16,38 +17,40 @@ RotController::RotController(float _Kp, float _Ki) {
 	
 }
 
-int RotController::update(int speed, int cwError){
+int RotController::update(int speed, int error){
 	
 	int time = millis();	
-	int deltaTime = 0;
-	int error = 0;
+	float deltaTime = 0;
 	
 	if(lastTime) {
 		deltaTime = (time-lastTime)*0.001;
 	}
 	
-	if(speed < 0) {
-		error = 255 - cwError;
-	} else {
-		error = cwError;
-	}
-	
 	float spw = 1.0f*speed/powerMax; // spw = shall be speed dependant
-		
-	int powerDelta = spw*Kp*(error-lastError)+Ki*deltaTime*error;
+	float siw = 1.0f*(1/(speed+1)); // siw = shall be speed dependant
 	
-	int power = constrain(lastPower+powerDelta,powerMin,powerMax);
+	/*
+	float powerDelta = 1.0f*spw*(Kp*(error-lastError)+Ki*deltaTime*error);
+			
+	float power = constrain(lastPower+powerDelta,powerMin,powerMax);
+	*/
+	  
+	ITerm += error;  
 	
-	if(abs(error)<20 || abs(error)>(255-20)) {
+	float power = spw * Kp * error + siw * Ki * ITerm;
+	power = constrain(power,powerMin,powerMax);
+	
+	if(abs(error) <= 2) {
 		power = 0;
+		ITerm = 0;
 	}
-
+	
 	lastTime = time;
 	lastError = error;
 	lastPower = power;
 	
 	return power;
-	
+		
 }
 
 void RotController::reset() {
@@ -55,5 +58,7 @@ void RotController::reset() {
 	lastTime = 0;
 	lastError = 0;
 	lastPower = 0;
+	
+	ITerm = 0;
 	
 }

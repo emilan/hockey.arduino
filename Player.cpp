@@ -1,13 +1,13 @@
 #include "Player.h"
 
 // Control parameters
-int feedbackParameters[6][6] = 
+float parameters[6][6] = 
 	{ {2,2,2,2},
 	  {2,2,2,2},
+	  {20,1,2,2},
 	  {2,2,2,2},
-	  {2,2,2,2},
-	  {2,2,2,2},
-	  {2,2,2,2} };
+	  {50,1,2,2},
+	  {20,1,2,2} };
 
 Player::Player(){
 
@@ -16,14 +16,31 @@ Player::Player(){
 Player::Player(int _id){
 
 	id=_id;
+		
+	// For rot
+	overshot = false;
+	passedZero = false;
+	rotLastError = 0;
+	
+	startTime = 0;
+	
+	int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
+		
+	if (rot < 0) {
+		rotCurrent = rot + 255;
+	} else {
+		rotCurrent = rot;
+	}
+	
+	rotLast = rotCurrent;  
 	
 	// Drivers
 	transDriver=TransDriver(id);
 	rotDriver=RotDriver(id);
 	
 	//Controllers
-	transController=TransController(feedbackParameters[id][0],feedbackParameters[id][1]);
-	rotController=RotController(feedbackParameters[id][2],feedbackParameters[id][3]);
+	transController=TransController(id,parameters[id][0],parameters[id][1]);
+	rotController=RotController(id,parameters[id][2],parameters[id][3]);
 	
 }
 
@@ -32,44 +49,123 @@ void Player::update(){
 	updateRot();
 }
 
-void Player::updateRot(){
-	
-	rotCurrent = rotDriver.readConstrained() - rotDriver.zeroAngle;
-	
-	int cwError = rotDestination - rotCurrent;				//mellan -255 och 510   '+???'
-	if (cwError < 0)
-		cwError += 255;
-	
-	/*
-	deltaRot+=255*((deltaRot<0)-(deltaRot>255));	//mellan 0 och 255
-	
-	if((deltaRot-127)*(lastDeltaRot-127)<0){		//change to correct halfturn if crossed the 180 degree mark
-		correctHalfTurn=true;
-	}
-	
-	lastDeltaRot=deltaRot;							//updaterar f�rra finkeln
-	
-	deltaRot-=255*((correctHalfTurn&&deltaRot>127)||((!correctHalfTurn)&&deltaRot<127));		//placerar felet p� r�tt varv beroende p� rotationsriktning 
-	*/
-	
-	float spe = rotController.update(rotSpeed, cwError);
-	rotDriver.setSpeed(spe);
-}
-
 void Player::updateTrans(){
 
+	int error;
+
 	transCurrent = transDriver.readConstrained();
-	int error = transCurrent - transDestination;
 	
-	float spe = transController.update(transSpeed, error);
+	if(abs(transSpeed) > 0) {
+		error = transDestination - transCurrent;
+	} else {
+		error = 0;
+	}
+		
+	int spe = transController.update(transSpeed, error);
 	transDriver.setSpeed(spe);
+	
+}
+
+void Player::updateRot(){
+
+	if(abs(rotSpeed) == 127) {
+
+		int time = millis();
+	
+		if(!startTime) {
+			startTime = time;
+			rotDriver.setSpeed(rotSpeed);
+		}		
+	
+		if(time - startTime > 500) {
+			rotDriver.setSpeed(0);
+			startTime = 0;
+			rotSpeed = 0;
+		}		
+	
+	} else {
+	
+		int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
+
+		if (rot < 0) {
+			rotCurrent = rot + 255;
+		} else {
+			rotCurrent = rot;
+		}
+		
+		long error = rotDestination - rotCurrent;
+		
+		if((rotLast > 205 && rotCurrent < 50) || (rotLast < 50 && rotCurrent > 205)) { 
+			passedZero = true;
+			
+			if(id == 5) {
+				Serial.println("passedZero!");
+			}
+		}
+			
+		if(rotLastError * error < 0 && !passedZero) {
+			overshot = !overshot;
+			
+			if(id == 5) {
+				Serial.println("overshot1!");
+			}
+			
+		} else if (rotLastError * error > 0 && passedZero) {
+			overshot = !overshot;
+			
+			if(id == 5) {
+				Serial.println("overshot2!");
+			}
+		}
+
+		rotLast = rotCurrent;
+		
+		if (error != 0) {
+			rotLastError = error;	
+		}
+		
+		// Error correction for rotation direction and overshoot.
+		if(rotSpeed > 0) {
+
+			if(error < 0 && !overshot) {
+				error = error + 255;
+			} else if(passedZero && overshot) {
+				
+				if(rotCurrent < rotDestination) {
+					error = error - 255;
+				} //annars, om rotCur > rotDest, error = error
+			}
+		
+		} else if(rotSpeed < 0) {
+		
+			if(error > 0 && !overshot) {
+				error = error - 255;
+			} else if(passedZero && overshot) {
+			
+				if(rotCurrent > rotDestination) {
+					error = error + 255;
+				} //annars, om rotCur < rotDest, error = error
+			}
+
+		} else {	
+			error = 0;		
+		}
+
+		int speed = abs(rotSpeed);
+		
+		int spe = rotController.update(speed, error);
+		rotDriver.setSpeed(spe);
+		
+		passedZero = false;
+		
+	}
+		
 }
 
 void Player::setState(byte _transSpeed, byte _transDestination, char _rotSpeed, byte _rotDestination){
 	
 	// Reset for new movement
-	transController.reset();
-	rotController.reset();
+	reset();
 	
 	// Save new state to variables	
 	transSpeed = _transSpeed;
@@ -82,20 +178,24 @@ void Player::setState(byte _transSpeed, byte _transDestination, char _rotSpeed, 
 
 bool Player::calibrate(){
 	
+	//transDriver.calibrate();
 	rotDriver.calibrate();
-	transDriver.calibrate();
 	
 	return true;
 	
 }
 
-bool Player::saveCalibration(){					// Store calibration
-	EEPROM.write(3*id,transDriver.sensorMin/4);		//g�r om v�rderna till 8bit precision
-	EEPROM.write(3*id+1,transDriver.sensorMax/4);
-	EEPROM.write(3*id+2,rotDriver.zeroAngle);
-	
-	// FIXA DETTA!
-	
+bool Player::saveCalibration(){
+
+	//Store calibration
+	EEPROM.write(7*id,transDriver.lowPowerPos);		
+	EEPROM.write(7*id+1,transDriver.sensorMax/4); // Change 10-bit to 8-bit value
+	EEPROM.write(7*id+2,transDriver.lowPowerNeg);
+	EEPROM.write(7*id+3,transDriver.sensorMin/4); // Change 10-bit to 8-bit value
+	EEPROM.write(7*id+4,rotDriver.lowPowerPos);
+	EEPROM.write(7*id+5,rotDriver.lowPowerNeg);
+	EEPROM.write(7*id+6,rotDriver.zeroAngle);
+
 	return true;
 	
 }
@@ -108,16 +208,9 @@ bool Player::reset(){
 	transController.reset();
 	rotController.reset();
 	
-	// Ska detta vara med i reset???
-	
-	transCurrent = 0;
-	rotCurrent = 0;
-	
-	/*
-	transDriver.sensorMax=0;
-	transDriver.sensorMin=1023;
-	rotDriver.zeroAngle=0;
-	*/
+	overshot = false;
+	passedZero = false;
+	rotLastError = 0;
 	
 	return true;
 	

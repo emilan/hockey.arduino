@@ -15,95 +15,105 @@ TransDriver::TransDriver(int _id){
 	
 	speedPin=2+2*id;
 	sensorPin=2*id;
-		
-	sensorMin=4*EEPROM.read(3*id);
-	sensorMax=4*EEPROM.read(3*id+1);
 
-	lowPowerPos=0;
-	lowPowerNeg=0;
 	highPower=255;
 	maxSpeed=254;
+	
+	lowPowerPos=EEPROM.read(7*id);
+	sensorMax=4*EEPROM.read(7*id+1);
+	lowPowerNeg=EEPROM.read(7*id+2);
+	sensorMin=4*EEPROM.read(7*id+3);
+	
 }
 
 bool TransDriver::calibrate(){
+
+	int length = 5;
+	int delayTime = 1000;
+	int lastValue = 0; 
 	
-	int pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-	int firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	// Find lowPowerPos	
+	lastValue = analogRead(sensorPin);
 	
-	int length = 0;
-	int delayTime = 0;
+	digitalWrite(forwardPin,1);
+	digitalWrite(backwardPin,0);
+		
+	for(int i=100;i<255;i++){
 	
-	// Find lowPowerPos
-	length = 3;
-	delayTime = 400;
-	
-	for(int i=0;i<255;i=i+2){
-			
-		pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-		setSpeed(i);
-		delay(delayTime);
-			
-		if(abs(pos-firstPos)>length){
+		if(abs(analogRead(sensorPin)-lastValue)>length){
 			lowPowerPos=i;						
 			break;
 		}
-	}
+		
+		lastValue = analogRead(sensorPin);
+		
+		analogWrite(speedPin,i);
+		delay(delayTime);
+		
+		analogWrite(speedPin,0);
+		delay(100);
+		
+	}		
 	
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 		
-	// Max		
-	sensorMax=1;
+	// Find sensorMax	
+	sensorMax=0;
 	int newVal=10;
-	setSpeed(lowPowerPos);//driver motorn ?t ena h?llet
 		
-	while(newVal>sensorMax){//v?ntar till sensorv?rdet inte l?ngre ?kar, d?refter definerar det som maximum position
-		sensorMax=newVal;
+	analogWrite(speedPin,constrain(lowPowerPos+100,0,255));
 		
-		delay(300);
-			
+	while(newVal>sensorMax) {		
+		sensorMax=newVal;		
+		delay(delayTime);			
 		newVal=analogRead(sensorPin);
 	}
 		
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 		
-	// Find lowPowerNeg	
-	firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	// Find lowPowerNeg
+	lastValue = analogRead(sensorPin);
 	
-	length = 3;
-	delayTime = 50;
+	digitalWrite(forwardPin,0);
+	digitalWrite(backwardPin,1);
+		
+	for(int i=50;i<255;i++){
 	
-	for(int j=0;j<255;j=j+2){
-			
-			pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-			setSpeed(-j);
-			delay(delayTime);
-			
-			if(abs(pos-firstPos)>length){
-				lowPowerNeg=j;						
-				break;
-			}
-	}
+		if(abs(analogRead(sensorPin)-lastValue)>length){
+			lowPowerNeg=i;						
+			break;
+		}
+		
+		lastValue = analogRead(sensorPin);
+		
+		analogWrite(speedPin,i);
+		delay(delayTime);
+		
+		analogWrite(speedPin,0);
+		delay(100);
+		
+	}		
 	
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 	
-	// Min	
+	// Find sensorMin
+	
 	newVal=sensorMax;	
-	sensorMin=newVal+1;
-			
-	setSpeed(-lowPowerNeg);
+	sensorMin=1025;
+	
+	analogWrite(speedPin,constrain(lowPowerNeg+100,0,255));
 			
 	while(newVal<sensorMin){
-		sensorMin=newVal;
-							
-		delay(300);
-				
+		sensorMin=newVal;							
+		delay(delayTime);
+		
 		newVal=analogRead(sensorPin);
 	}
 	
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 		
 	return true;
@@ -112,27 +122,38 @@ bool TransDriver::calibrate(){
 // Activate motor with chosen duty cycle
 void TransDriver::setSpeed(int vel){
 	
-	int lowPower = 0;
-	
-	// Choose direction
-	if(vel>0){
-		digitalWrite(forwardPin,HIGH);
-		digitalWrite(backwardPin,LOW);		
-		lowPower = lowPowerPos;	
-	}else if(vel<0){
-		digitalWrite(forwardPin,LOW);
-		digitalWrite(backwardPin,HIGH);		
-		lowPower = lowPowerNeg;		
-	}
-	 
 	// Set speed
-	if(vel==0){	
-		digitalWrite(forwardPin,LOW);
-		digitalWrite(backwardPin,LOW);
+	if(vel == 0) {
+	
+		digitalWrite(forwardPin,0);
+		digitalWrite(backwardPin,0);
 		analogWrite(speedPin,0);
-	}else{
+		
+	} else {	
+	
+		int lowPower = 0;
+		
+		// Choose direction
+		if(vel > 0){		
+			digitalWrite(forwardPin,1);
+			digitalWrite(backwardPin,0);		
+			lowPower = lowPowerPos;			
+		}else if(vel < 0){		
+			digitalWrite(forwardPin,0);
+			digitalWrite(backwardPin,1);
+			lowPower = lowPowerNeg;			
+		}
+		
 		int finalPower=map(abs(vel),0,maxSpeed,lowPower,highPower);
-		analogWrite(speedPin,finalPower);		
+		
+		if(finalPower == 255) {
+		
+			Serial.print("FULL POWER player ");
+			Serial.println(id);
+		}
+
+		analogWrite(speedPin,finalPower);	
+		
 	}
 
 }

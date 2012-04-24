@@ -1,40 +1,64 @@
 #include "TransController.h"
 
-TransController::TransController(int _Kp,int _Ki,int _Kd,int _interval){
-	interval=_interval;
-	Ki=_Ki;
+TransController::TransController() {
+
+}
+
+TransController::TransController(int _id, float _Kp, float _Ki) {
+
+	id = _id;
 	Kp=_Kp;
-	Kd=_Kd;
+	Ki=_Ki;
+	
+	powerMax = 255;
+	powerMin = -255;
+	
+	reset();
+	
 }
 
-int TransController::update(float speed,float delta){
+int TransController::update(int speed, int error){
 	
-	float absSpeedfrac=abs(speed)/interval;
+	int time = millis();	
+	float deltaTime = 0;
 	
-	time=millis();
-	
-	float deltaTime=(time-lastTime)*0.001;
-	
-	float P=delta;
-	
-	I+=delta*deltaTime;
-	I=constrain(I,-255/absSpeedfrac,255/absSpeedfrac);
-	//I*=pow(0.99,1/deltaTime);
-		
-	float D=(delta-lastDelta)/deltaTime;
-
-	float spe=-absSpeedfrac*(Ki*I+Kp*P+Kd*D);
-	
-	if(abs(P)<5){
-		spe=0;
+	if(lastTime) {
+		deltaTime = (time-lastTime)*0.001;
 	}
-
-	lastTime=time;
-	lastDelta=delta;
-	return constrain(spe,-interval,interval);
+	
+	float spw = 1.0f*speed/powerMax; // spw = shall be speed dependant
+	float siw = 1.0f*(1/(speed+1)); // siw = shall be speed dependant
+	
+	/*
+	float powerDelta = 1.0f*spw*(Kp*(error-lastError)+Ki*deltaTime*error);
+			
+	float power = constrain(lastPower+powerDelta,powerMin,powerMax);
+	*/
+	  
+	ITerm += error;  
+	
+	float power = spw * Kp * error + siw * Ki * ITerm;
+	power = constrain(power,powerMin,powerMax);
+	
+	if(abs(error) <= 2) {
+		power = 0;
+		ITerm = 0;
+	}
+	
+	lastTime = time;
+	lastError = error;
+	lastPower = power;
+	
+	return power;
+	
 }
 
-void TransController::reset(){
-	I=0;
-	lastDelta=0;
+void TransController::reset() {
+	
+	lastTime = 0;
+	lastError = 0;
+	lastPower = 0;
+	
+	ITerm = 0;
+	
 }

@@ -1,11 +1,14 @@
-#include "EEPROM.h"
-#include "WProgram.h"
+#if defined(ARDUINO) && ARDUINO >= 100
+ #include "Arduino.h"
+#else
+ #include "WProgram.h"
+#endif
+#include <EEPROM.h>
 
 class TransDriver{
 
 	int id;
-	int lowPowerPos;
-	int lowPowerNeg;
+	
 	int highPower;
 	int maxSpeed;
 	
@@ -14,9 +17,13 @@ public:
 	int backwardPin;
 	int speedPin;
 	int sensorPin;
-	int sensorMin;
+	
+	int lowPowerPos;
 	int sensorMax;
-
+	
+	int lowPowerNeg;	
+	int sensorMin;
+	
 	TransDriver();
 	TransDriver(int _id);
 	

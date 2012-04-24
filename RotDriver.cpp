@@ -1,7 +1,7 @@
 #include "RotDriver.h"
 
 RotDriver::RotDriver() {
-	;
+
 }
 
 RotDriver::RotDriver(int _id){
@@ -18,63 +18,74 @@ RotDriver::RotDriver(int _id){
 	
 	sensorMin=0;
 	sensorMax=1023;
-	
-	lowPowerPos=0;
-	lowPowerNeg=0;
+		
 	highPower=255;
+	maxSpeed=127;
 	
-	maxSpeed=127; 					/// ?!?!?!?
-	zeroAngle=EEPROM.read(3*id+2);  /// ?!?!?!?
+	lowPowerPos=EEPROM.read(7*id+4);
+	lowPowerNeg=EEPROM.read(7*id+5);
+	zeroAngle=EEPROM.read(7*id+6);
 }
 
 bool RotDriver::calibrate(){
+
+	int length = 30;
+	int delayTime = 1000;
+	int lastValue = 0;
 	
-	int pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-		
 	// Read zeroAngle (Player must face forward before calibration!)	
-	zeroAngle=pos;
-			
-	int length = 5;
-	int delayTime = 100;
+	zeroAngle=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
 	
-	// Find lowPowerPos
-	int firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
+	// Find lowPowerPos	
+	lastValue = analogRead(sensorPin);
 	
-	for(int i=0;i<255;i=i+2){
-			
-		pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-		setSpeed(i);
-		delay(delayTime);
-			
-		if(abs(pos-firstPos)>length){
-			lowPowerPos=i;						
+	digitalWrite(forwardPin,1);
+	digitalWrite(backwardPin,0);
+		
+	for(int i=50;i<255;i++){
+	
+		if(abs(analogRead(sensorPin)-lastValue)>length) {
+			lowPowerPos=i;		
 			break;
 		}
-	}
+		
+		lastValue = analogRead(sensorPin);
+		
+		analogWrite(speedPin,i);
+		delay(delayTime);
+		
+		analogWrite(speedPin,0);
+		delay(100);
+		
+	}		
 	
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 	
-	// Find lowPowerNeg
+	// Find lowPowerNeg	
+	lastValue = analogRead(sensorPin);
 	
-	length = 5;
-	delayTime = 100;
+	digitalWrite(forwardPin,0);
+	digitalWrite(backwardPin,1);
+		
+	for(int i=50;i<255;i++){
 	
-	firstPos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-	
-	for(int i=0;i<255;i=i+2){
-			
-		pos=map(analogRead(sensorPin),sensorMin,sensorMax,0,255);
-		setSpeed(-i);
-		delay(delayTime);
-			
-		if(abs(pos-firstPos)>length){
-			lowPowerNeg=i;						
+		if(abs(analogRead(sensorPin)-lastValue)>length) {
+			lowPowerNeg=i;	
 			break;
 		}
-	}
+		
+		lastValue = analogRead(sensorPin);
+		
+		analogWrite(speedPin,i);
+		delay(delayTime);
+		
+		analogWrite(speedPin,0);
+		delay(100);
+		
+	}		
 	
-	setSpeed(0);
+	analogWrite(speedPin,0);
 	delay(500);
 		
 	return true;
@@ -84,22 +95,24 @@ bool RotDriver::calibrate(){
 void RotDriver::setSpeed(int vel){
 		
 	// Set speed
-	if(abs(vel) <= 20) {		
-		digitalWrite(forwardPin,LOW);
-		digitalWrite(backwardPin,LOW);
-		analogWrite(speedPin,0);		
-	}else{	
+	if(vel == 0) {
+	
+		digitalWrite(forwardPin,0);
+		digitalWrite(backwardPin,0);
+		analogWrite(speedPin,0);
+		
+	} else {	
 	
 		int lowPower = 0;
 		
 		// Choose direction
-		if(vel>0){		
-			digitalWrite(forwardPin,HIGH);
-			digitalWrite(backwardPin,LOW);		
+		if(vel > 0){		
+			digitalWrite(forwardPin,1);
+			digitalWrite(backwardPin,0);		
 			lowPower = lowPowerPos;			
-		}else if(vel<0){		
-			digitalWrite(forwardPin,LOW);
-			digitalWrite(backwardPin,HIGH);		
+		}else if(vel < 0){		
+			digitalWrite(forwardPin,0);
+			digitalWrite(backwardPin,1);		
 			lowPower = lowPowerNeg;			
 		}
 		
@@ -110,7 +123,6 @@ void RotDriver::setSpeed(int vel){
 
 }
 
-// Finns annat sätt att koda, behövs detta?!?!?
 int RotDriver::readConstrained() {
   return map(constrain(analogRead(sensorPin), sensorMin, sensorMax), sensorMin, sensorMax, 0, 255);
 }

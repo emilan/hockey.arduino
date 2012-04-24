@@ -1,3 +1,4 @@
+#include <EEPROM.h>
 #include "TransDriver.h"
 #include "RotDriver.h"
 #include "TransController.h"
@@ -6,6 +7,11 @@
 class Player{
 	
 	int id;
+	int startTime;
+	
+	bool overshot;
+	bool passedZero;
+	long rotLastError;
 	
 	// Drivers
 	TransDriver transDriver;
@@ -13,12 +19,11 @@ class Player{
 	
 	// Controllers
 	TransController transController;
-	//RotController rotController;
+	RotController rotController;
 
-	int transCurrent, rotCurrent;
+	int transCurrent, rotCurrent, rotLast;
 	
 public:
-	RotController rotController;
 
 	int transDestination, rotDestination;
 	float transSpeed, rotSpeed;

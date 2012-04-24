@@ -1,15 +1,29 @@
-#include "WProgram.h"
+#if defined(ARDUINO) && ARDUINO >= 100
+ #include "Arduino.h"
+#else
+ #include "WProgram.h"
+#endif
 
 class TransController{
-	int Ki,Kp,Kd;
-	float proximity;
-	float I;
-	int time;
-	int lastTime;
-	int lastDelta;
-	int interval;
-public:	
-	TransController(int _Kp=5,int _Ki=5,int _Kd=0,int interval=255);//
-	int update(float rotSpeed,float delta);
+	
+	int id;
+	float Ki,Kp;
+	int powerMax;
+	int powerMin;
+	
+	int lastTime;	
+	int lastError;
+	float lastPower;
+	float ITerm;
+	
+public:
+
+	TransController();
+	TransController(int _id, float _Kp, float _Ki);
+	
+	int update(int speed, int error);	
 	void reset();
 };
+
+
+	

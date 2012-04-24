@@ -1,28 +1,10 @@
+#include <EEPROM.h>
 #include "Player.h"
 #include "TimerThree.h"
 
 #define TEAMID "t0"
 
-Player players[6];
-bool calibrating=false;
-
-void setup(){
-	
-	TimerThree t=TimerThree();			// Initialize Timer
-	t.start();
-	t.setPeriod(100);					// PWM dutycycle 100 ms
-
-	Serial.begin(115200);				// Begin serial, 115kBaud
-
-	for(int i=0;i<6;i++){				// Player init
-		players[i]=Player(i);
-		players[i].transDestination=0;
-		players[i].transSpeed=0;
-		players[i].rotDestination=120; 	//?!?!?!
-		players[i].rotSpeed=0;
-	}
-	
-}
+Player players[6];					// Player array
 
 char getChar() {
 	char res = 0;
@@ -39,7 +21,7 @@ char getChar() {
 		}
 	}
 	res = sign * res;
-	//Serial.println(res, DEC);
+
 	return res;
 }
 
@@ -51,12 +33,36 @@ byte getByte() {
 			break;
 		res = res * 10 + c - '0';
 	}
-	//Serial.println(res, DEC);
+
 	return res;
 }
 
-void loop(){
-	if(Serial.available() > 0){			// Wait for message
+// System setup
+void setup(){
+	
+	TimerThree t=TimerThree();			// Initialize Timer
+	t.start();
+	t.setPeriod(100);					// PWM dutycycle 100 ms
+
+	Serial.begin(115200);				// Begin serial, 115kBaud
+	
+	for(int i=0;i<6;i++){				// Player init
+		
+		players[i]=Player(i);
+		
+		players[i].transDestination=0;
+		players[i].transSpeed=0;
+		players[i].rotDestination=0;
+		players[i].rotSpeed=0;
+		
+	}
+	
+}
+
+// Main loop
+void loop() {
+
+	if(Serial.available() > 0) {		// Wait for message
 		
 		delay(1);						// Delay 1 ms
 		char mode=Serial.read();
@@ -67,17 +73,7 @@ void loop(){
 		
 		}else if(mode=='c'){			// Command Mode
 			
-			if(calibrating){
-			
-				calibrating=false;
-				
-				for(int i=0;i<6;i++){
-					players[i].saveCalibration();
-				}
-				
-			}
-			
-			while(Serial.available()>=5){		// Complete command?
+			while(Serial.available() >=5 ) {		// Complete command?
 				
 				byte pNumber=Serial.read();
 				byte transSpeed=Serial.read();
@@ -111,38 +107,50 @@ void loop(){
 			Serial.print('.');
 			Serial.println(rotDestination, DEC);
 			
-			if (pNumber >=0 && pNumber<6) {	
+			if (pNumber >=0 && pNumber < 6) {	
 				Serial.println("Setting state...");
 				players[pNumber].setState(transSpeed, transDestination, rotSpeed, rotDestination);
 			}
 			
-			// Fulhack för errors
+		} else if(mode=='a') {
 			
-			mode = Serial.read();
+			if(Serial.available() >= 1) {
 			
-			while(mode!='x') {
-		
-				Serial.println(players[pNumber].rotController.lastError);
+				byte pNumber = getByte();
 				
-				for(int i=0;i<6;i++)	
-				players[i].update();					// Uppdaterar styrsignal
+				if (pNumber >=0 && pNumber < 6) {	
 				
-				mode=Serial.read();
+					players[pNumber].reset();
+					
+					Serial.print("Calibrating player ");
+					Serial.print(pNumber);
+					Serial.println("...");
+					
+					players[pNumber].calibrate();
+					players[pNumber].saveCalibration();
+				
+					Serial.println("Done!");
+					
+				}				
 			
-			}
-			
-		} else if(mode=='a'){							// Kalibrerar spelet
-			
-			if(!calibrating){
-			
+			} else {
+						
 				for(int i=0;i<6;i++){
+				
 					players[i].reset();
+					
+					Serial.print("Calibrating player ");
+					Serial.print(i);
+					Serial.println("...");
+					
 					players[i].calibrate();
+					players[i].saveCalibration();
+					
+					Serial.println("Done!");
+					
 				}
 				
 			}
-			
-			calibrating=true;
 
 		}
 		
@@ -157,8 +165,8 @@ void loop(){
 
 void sendState(){								// Konstuerar ett meddelande och skickar det
 	
+	int index = 0;
 	byte toSend[12];
-	int index=0;
 	
 	for(int i=0;i<6;i++){
 		toSend[index++]=players[i].getTrans();
