@@ -1,6 +1,5 @@
 #include <EEPROM.h>
 #include "Player.h"
-#include "TimerThree.h"
 
 #define TEAMID "t0"
 
@@ -39,10 +38,6 @@ byte getByte() {
 
 // System setup
 void setup(){
-	
-	TimerThree t=TimerThree();			// Initialize Timer
-	t.start();
-	t.setPeriod(100);					// PWM dutycycle 100 ms
 
 	Serial.begin(115200);				// Begin serial, 115kBaud
 	
