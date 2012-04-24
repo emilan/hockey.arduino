@@ -40,7 +40,7 @@ int TransController::update(int speed, int error){
 	float power = spw * Kp * error + siw * Ki * ITerm;
 	power = constrain(power,powerMin,powerMax);
 	
-	if(abs(error) <= 2) {
+	if(abs(error) <= 3) {
 		power = 0;
 		ITerm = 0;
 	}

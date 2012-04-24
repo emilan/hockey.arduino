@@ -2,12 +2,12 @@
 
 // Control parameters
 float parameters[6][6] = 
-	{ {2,2,2,2},
-	  {2,2,2,2},
-	  {20,1,2,2},
-	  {2,2,2,2},
-	  {50,1,2,2},
-	  {20,1,2,2} };
+	{ {2,0,0,0},
+	  {20,0,0,0},
+	  {20,0,0,0},
+	  {50,0,0,0},
+	  {100,0,0,0},
+	  {20,0,0,0} };
 
 Player::Player(){
 
@@ -178,7 +178,7 @@ void Player::setState(byte _transSpeed, byte _transDestination, char _rotSpeed, 
 
 bool Player::calibrate(){
 	
-	//transDriver.calibrate();
+	transDriver.calibrate();
 	rotDriver.calibrate();
 	
 	return true;

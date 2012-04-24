@@ -42,7 +42,7 @@ bool RotDriver::calibrate(){
 	digitalWrite(forwardPin,1);
 	digitalWrite(backwardPin,0);
 		
-	for(int i=50;i<255;i++){
+	for(int i=30;i<255;i++){
 	
 		if(abs(analogRead(sensorPin)-lastValue)>length) {
 			lowPowerPos=i;		
@@ -68,7 +68,7 @@ bool RotDriver::calibrate(){
 	digitalWrite(forwardPin,0);
 	digitalWrite(backwardPin,1);
 		
-	for(int i=50;i<255;i++){
+	for(int i=30;i<255;i++){
 	
 		if(abs(analogRead(sensorPin)-lastValue)>length) {
 			lowPowerNeg=i;	
