@@ -54,13 +54,20 @@ void setup(){
 	
 }
 
+char mode = '\0';
+
+void update() {
+	for(int i=0;i<6;i++)	
+		players[i].update();					// Uppdaterar styrsignal
+}
+
 // Main loop
 void loop() {
 
 	if(Serial.available() > 0) {		// Wait for message
 		
 		delay(1);						// Delay 1 ms
-		char mode=Serial.read();
+		mode=Serial.read();
 		
 		if(mode=='i'){					// Indetification Mode, In use ?!?!?
 			
@@ -82,7 +89,8 @@ void loop() {
 			}
 			
 			sendState();
-			
+			update();
+
 		}else if(mode=='d'){
 		
 			byte pNumber = getByte();
@@ -152,10 +160,8 @@ void loop() {
 		Serial.flush();
 		
 	}
-	
-	for(int i=0;i<6;i++)	
-		players[i].update();					// Uppdaterar styrsignal
-		
+	if (mode == 'd')
+		update();
 }
 
 void sendState(){								// Konstuerar ett meddelande och skickar det
