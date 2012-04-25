@@ -67,7 +67,12 @@ void Player::updateTrans(){
 }
 
 void Player::updateRot(){
+	int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
 
+	if (rot < 0)
+		rotCurrent = rot + 255;
+	else rotCurrent = rot;
+	
 	if(abs(rotSpeed) == 127) {
 
 		int time = millis();
@@ -84,14 +89,6 @@ void Player::updateRot(){
 		}		
 	
 	} else {
-	
-		int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
-
-		if (rot < 0) {
-			rotCurrent = rot + 255;
-		} else {
-			rotCurrent = rot;
-		}
 		
 		long error = rotDestination - rotCurrent;
 		
