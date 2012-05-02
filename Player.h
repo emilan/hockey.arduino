@@ -11,7 +11,7 @@ class Player{
 	
 	bool overshot;
 	bool passedZero;
-	long rotLastError;
+	long rotLastDiff;
 	
 	// Drivers
 	TransDriver transDriver;

@@ -2,12 +2,12 @@
 
 // Control parameters
 float parameters[6][6] = 
-	{ {2,0,0,0},
-	  {20,0,0,0},
-	  {20,0,0,0},
-	  {50,0,0,0},
-	  {100,0,0,0},
-	  {20,0,0,0} };
+	{ {2,0,0.2,0},
+	  {20,0,1,0},
+	  {20,0,1,0},
+	  {50,0,1,0},
+	  {100,0,1,0},
+	  {20,0,1,0} };
 
 Player::Player(){
 
@@ -20,7 +20,7 @@ Player::Player(int _id){
 	// For rot
 	overshot = false;
 	passedZero = false;
-	rotLastError = 0;
+	rotLastDiff = 0;
 	
 	startTime = 0;
 	
@@ -66,7 +66,7 @@ void Player::updateTrans(){
 	
 }
 
-void Player::updateRot(){
+void Player::updateRot() {
 	int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
 
 	if (rot < 0)
@@ -90,36 +90,92 @@ void Player::updateRot(){
 	
 	} else {
 		
-		long error = rotDestination - rotCurrent;
+		int posError = 0;
+		int negError =  0;
+		long error = 0;
 		
+		// Calculate posError and negError
+		
+		if(rotDestination < rotCurrent) {
+		
+			posError = rotCurrent - rotDestination;
+			negError = -(rotDestination - rotCurrent + 255);
+			
+		} else if (rotDestination > rotCurrent) {
+		
+			posError = rotCurrent - rotDestination + 255;
+			negError = -(rotDestination - rotCurrent);
+		}
+		
+		if(id == 0) {
+		
+				Serial.print("CURRENT:");
+				Serial.println(rotCurrent);
+		
+				Serial.print("POS_ERROR:");
+				Serial.println(posError);
+				
+				Serial.print("NEG_ERROR:");
+				Serial.println(negError);
+				
+			}
+			
+		// Check for overshot (and passedZero)
+			
 		if((rotLast > 205 && rotCurrent < 50) || (rotLast < 50 && rotCurrent > 205)) { 
 			passedZero = true;
 			
-			if(id == 5) {
+			if(id == 0) {
 				Serial.println("passedZero!");
 			}
 		}
-			
-		if(rotLastError * error < 0 && !passedZero) {
+		
+		long diff = rotDestination - rotCurrent;
+		
+		if(rotLastDiff * diff < 0 && !passedZero) {
 			overshot = !overshot;
 			
-			if(id == 5) {
+			if(id == 0) {
 				Serial.println("overshot1!");
 			}
 			
-		} else if (rotLastError * error > 0 && passedZero) {
+		} else if (rotLastDiff * diff > 0 && passedZero) {
 			overshot = !overshot;
 			
-			if(id == 5) {
+			if(id == 0) {
 				Serial.println("overshot2!");
 			}
 		}
 
 		rotLast = rotCurrent;
 		
-		if (error != 0) {
-			rotLastError = error;	
+		if (diff != 0) {
+			rotLastDiff = diff;	
 		}
+		
+		// Choose correct error		
+		
+		if(!overshot) {
+		
+			if(rotSpeed > 0) {
+				error = posError;
+			} else if (rotSpeed < 0) {
+				error = negError;
+			} else {
+				error = 0;
+			}
+		
+		} else {
+		
+			if(abs(posError) < abs(negError)) {
+				error = posError;
+			} else {
+				error = negError;
+			}
+			
+		}
+		
+		/*
 		
 		// Error correction for rotation direction and overshoot.
 		if(rotSpeed > 0) {
@@ -147,6 +203,7 @@ void Player::updateRot(){
 		} else {	
 			error = 0;		
 		}
+		*/
 
 		int speed = abs(rotSpeed);
 		
@@ -154,6 +211,13 @@ void Player::updateRot(){
 		rotDriver.setSpeed(spe);
 		
 		passedZero = false;
+		
+		if(id == 0) {
+		
+			Serial.print("ERROR:");
+			Serial.println(error);
+		
+		}
 		
 	}
 		
@@ -207,7 +271,7 @@ bool Player::reset(){
 	
 	overshot = false;
 	passedZero = false;
-	rotLastError = 0;
+	rotLastDiff = 0;
 	
 	return true;
 	
