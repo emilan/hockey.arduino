@@ -66,7 +66,7 @@ void loop() {
 
 	if(Serial.available() > 0) {		// Wait for message
 		
-		delay(1);						// Delay 1 ms
+		delay(3);						// Delay 3 ms
 		mode=Serial.read();
 		
 		if(mode=='i'){					// Indetification Mode, In use ?!?!?
@@ -74,7 +74,6 @@ void loop() {
 			Serial.println(TEAMID);
 		
 		}else if(mode=='c'){			// Command Mode
-			
 			while(Serial.available() >= 5) {		// Complete command?
 				
 				byte pNumber=Serial.read();
