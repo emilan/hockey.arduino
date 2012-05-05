@@ -69,9 +69,15 @@ void Player::updateTrans(){
 void Player::updateRot() {
 	int rot = rotDriver.readConstrained() - rotDriver.zeroAngle; 
 
-	if (rot < 0)
-		rotCurrent = rot + 255;
-	else rotCurrent = rot;
+	// Correct for player 5 automatic rotation as he moves past his curve
+	if (id == 5 && transCurrent >= 148)
+		rot += 0.4269 * transCurrent - 56.543;
+	
+	while (rot < 0)
+		rot += 255;
+	while (rot > 255)
+		rot -= 255;
+	rotCurrent = rot;
 	
 	if(abs(rotSpeed) == 127) {
 
@@ -95,7 +101,6 @@ void Player::updateRot() {
 		long error = 0;
 		
 		// Calculate posError and negError
-		
 		if(rotDestination < rotCurrent) {
 		
 			posError = rotCurrent - rotDestination;
@@ -272,6 +277,6 @@ byte Player::getTrans(){
 	return transCurrent;
 }
 
-byte Player::getRot(){
+byte Player::getRot() {
 	return rotCurrent;
 }
