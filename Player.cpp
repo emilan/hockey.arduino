@@ -107,6 +107,7 @@ void Player::updateRot() {
 			negError = -(rotDestination - rotCurrent);
 		}
 		
+		/*
 		if(id == 0) {
 		
 				Serial.print("CURRENT:");
@@ -119,15 +120,12 @@ void Player::updateRot() {
 				Serial.println(negError);
 				
 			}
+		*/
 			
 		// Check for overshot (and passedZero)
 			
 		if((rotLast > 205 && rotCurrent < 50) || (rotLast < 50 && rotCurrent > 205)) { 
 			passedZero = true;
-			
-			if(id == 0) {
-				Serial.println("passedZero!");
-			}
 		}
 		
 		long diff = rotDestination - rotCurrent;
@@ -135,16 +133,8 @@ void Player::updateRot() {
 		if(rotLastDiff * diff < 0 && !passedZero) {
 			overshot = !overshot;
 			
-			if(id == 0) {
-				Serial.println("overshot1!");
-			}
-			
 		} else if (rotLastDiff * diff > 0 && passedZero) {
 			overshot = !overshot;
-			
-			if(id == 0) {
-				Serial.println("overshot2!");
-			}
 		}
 
 		rotLast = rotCurrent;
@@ -212,13 +202,14 @@ void Player::updateRot() {
 		
 		passedZero = false;
 		
+		/*
 		if(id == 0) {
 		
 			Serial.print("ERROR:");
 			Serial.println(error);
 		
 		}
-		
+		*/
 	}
 		
 }

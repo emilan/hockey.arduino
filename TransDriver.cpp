@@ -146,11 +146,10 @@ void TransDriver::setSpeed(int vel){
 		
 		int finalPower=map(abs(vel),0,maxSpeed,lowPower,highPower);
 		
-		if(finalPower == 255) {
-		
+		/*if(finalPower == 255) {
 			Serial.print("FULL POWER player ");
 			Serial.println(id);
-		}
+		}*/
 
 		analogWrite(speedPin,finalPower);	
 		

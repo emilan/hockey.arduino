@@ -75,7 +75,7 @@ void loop() {
 		
 		}else if(mode=='c'){			// Command Mode
 			
-			while(Serial.available() >=5 ) {		// Complete command?
+			while(Serial.available() >= 5) {		// Complete command?
 				
 				byte pNumber=Serial.read();
 				byte transSpeed=Serial.read();
